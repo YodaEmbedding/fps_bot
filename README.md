@@ -15,8 +15,6 @@ Simply leave a top-level comment in one of the following formats:
     /u/fps_bot 2x        # 2x frames
     /u/fps_bot 2x 0.5x   # 2x frames, but slow to 0.5x
 
-(NOT IMPLEMENTED FULLY)
-
 ## Setup
 
 An example `secret.json` config:

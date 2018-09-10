@@ -154,6 +154,7 @@ def main():
 
 logging_setup()
 main()
+# encode_video('input.mp4', 'output.mp4', '/u/fps_bot 2x 0.5x')
 
 # Connect to reddit account
 # Monitor for mentions
@@ -163,9 +164,8 @@ main()
 # Reply to comment
 
 # TODO
+# Args: reverse video (maybe a separate bot)
 # Break into multiple files
-# Detailed arguments (2x, 60fps)
-# Also support slowing down a video, e.g. by 2x
 # Warnings (e.g. NSFW)
 # Clever replies? :P
 # Makefile lint
@@ -174,7 +174,10 @@ main()
 # Cache/lookup table
 # Remove download/upload videos once completed?
 # Reencode as gyfcat webm
-# Print "fps, playback speed"
 # Work with non-top level (use nearest mention of valid domain)
 # Reject invalid domains
 # setup.py; setup requirements, instructions
+# Max length; rescale resolution
+# Lower output quality (faster encode)
+# Support for i.reddit, gifs, giphy
+# GIF->mp4 conversion (https://unix.stackexchange.com/questions/40638/how-to-do-i-convert-an-animated-gif-to-an-mp4-or-mv4-on-the-command-line)
