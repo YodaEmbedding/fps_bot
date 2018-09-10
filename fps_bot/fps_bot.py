@@ -100,41 +100,45 @@ def main():
     _upload_video   = timed(upload_video)
 
     msg_footer = shrink_text(2,
-        '[usage](https://github.com/SicariusNoctis/fps_bot) | '
+        '[help](https://github.com/SicariusNoctis/fps_bot) | '
         '[report issue](https://github.com/SicariusNoctis/fps_bot/issues) | '
         '[source code](https://github.com/SicariusNoctis/fps_bot)')
 
     logger.info('Run started')
 
     while True:
-        for msg in reddit.inbox.unread():
-            if not isinstance(msg, praw.models.Comment) or not msg.is_root:
-                continue
+        try:
+            for msg in reddit.inbox.unread():
+                if not isinstance(msg, praw.models.Comment) or not msg.is_root:
+                    continue
 
-            msg.mark_read()
-            request = msg.body.split('\n', 1)[0]
-            url_download = msg.parent().url
-            fname_download = url_to_filename(url_download)
-            fname_upload = f"enc-{fname_download}"
-            times = []
+                msg.mark_read()
+                request = msg.body.split('\n', 1)[0]
+                url_download = msg.parent().url
+                fname_download = url_to_filename(url_download)
+                fname_upload = f"enc-{fname_download}"
+                times = []
 
-            logger.info(f'Comment: {comment_permalink(msg)}')
-            logger.info(f'Request: {request}')
-            logger.info(f'Link:    {url_download}')
+                logger.info(f'Comment: {comment_permalink(msg)}')
+                logger.info(f'Request: {request}')
+                logger.info(f'Link:    {url_download}')
 
-            t, _ = _download_video(url_download, fname_download)
-            times.append(t)
-            t, _ = _encode_video(fname_download, fname_upload)
-            times.append(t)
-            t, url_upload = _upload_video(gfycat, fname_upload)
-            times.append(t)
+                t, _ = _download_video(url_download, fname_download)
+                times.append(t)
+                t, _ = _encode_video(fname_download, fname_upload, request)
+                times.append(t)
+                t, url_upload = _upload_video(gfycat, fname_upload)
+                times.append(t)
 
-            logger.info(f'Result:  {url_upload}')
-            reply = msg.reply(make_reply(url_upload, msg_footer, times))
-            logger.info(f'Reply:   {comment_permalink(reply)}')
+                logger.info(f'Result:  {url_upload}')
+                reply = msg.reply(make_reply(url_upload, msg_footer, times))
+                logger.info(f'Reply:   {comment_permalink(reply)}')
 
-        logger.debug('Sleeping 10s...')
-        sleep(10)
+            logger.debug('Sleeping 10s...')
+            sleep(10)
+        except Exception as e:
+            logger.error(e)
+
 
 # gfycat = pfycat.Client()
 #
