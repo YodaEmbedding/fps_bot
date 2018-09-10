@@ -33,14 +33,19 @@ def timed(f):
 
 def url_to_filename(url):
     s = url.split('/')[-1]
-    basename = "".join(c if c.isalnum() else "_" for c in s)
-    return f"{basename[:64]}.mp4"
+    basename = "".join(c if c.isalnum() else "_" for c in s)[:64]
+    return f"{basename}.mp4"
 
 def download_video(url, filename):
     logger.info('Downloading...')
+    filename_tmp = f'{filename[:-4]}.tmp'
     ydl_args = {
-        'outtmpl': filename,
-        'restrictfilenames': True }
+        'outtmpl': filename_tmp,
+        'restrictfilenames': True,
+        'postprocessors': [{
+            'key': 'FFmpegVideoConvertor',
+            'preferedformat': 'mp4' }]
+        }
     with youtube_dl.YoutubeDL(ydl_args) as ydl:
         ydl.download([url])
 
@@ -140,25 +145,13 @@ def main():
             logger.error(e)
 
 
-# gfycat = pfycat.Client()
-#
-# _download_video = timed(download_video)
-# _encode_video   = timed(encode_video)
-# _upload_video   = timed(upload_video)
-#
-# request = '/u/fps_bot 2x'
-# url_download = 'https://gfycat.com/gifs/detail/deadlydeafeningatlanticblackgoby'
-# fname_download = url_to_filename(url_download)
-# download_video(url_download, fname_download)
-#
-# fname_upload = f"enc-{fname_download}"
-# encode_video(fname_download, fname_upload)
-# url_upload = upload_video(gfycat, fname_upload)
-# print(url_upload)
-
 logging_setup()
 main()
+
+# gfycat = pfycat.Client()
+# download_video('https://i.redd.it/uspf3ktwp7l11.gif', 'input.mp4')
 # encode_video('input.mp4', 'output.mp4', '/u/fps_bot 2x 0.5x')
+# upload_video(gyfcat, 'output.mp4')
 
 # Connect to reddit account
 # Monitor for mentions
@@ -183,5 +176,3 @@ main()
 # setup.py; setup requirements, instructions
 # Max length; rescale resolution
 # Lower output quality (faster encode)
-# Support for i.reddit, gifs, giphy
-# GIF->mp4 conversion (https://unix.stackexchange.com/questions/40638/how-to-do-i-convert-an-animated-gif-to-an-mp4-or-mv4-on-the-command-line)
