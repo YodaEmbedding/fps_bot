@@ -1,7 +1,10 @@
+import logging
 import subprocess
-# import butterflow
+
+logger = logging.getLogger('fps_bot')
 
 def encode_video(fname_input, fname_output):
+    logger.info('Encoding...')
     subprocess.call(['butterflow',
         '-audio',
         '-r', '2x',

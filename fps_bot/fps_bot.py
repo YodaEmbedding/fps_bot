@@ -2,8 +2,10 @@ from functools import wraps
 from getpass import getpass
 from time import sleep, time
 import json
-import praw
+import logging
 import pfycat
+import praw
+import sys
 import youtube_dl
 
 from encoder import encode_video
@@ -35,6 +37,7 @@ def url_to_filename(url):
     return f"{basename[:64]}.mp4"
 
 def download_video(url, filename):
+    logger.info('Downloading...')
     ydl_args = {
         'outtmpl': filename,
         'restrictfilenames': True }
@@ -43,6 +46,7 @@ def download_video(url, filename):
 
 # TODO ewww passing in gfycat as argument
 def upload_video(gfycat, filename):
+    logger.info('Uploading...')
     d = gfycat.upload(filename)
     return f"https://gfycat.com/{d['gfyname']}"
 
@@ -54,6 +58,29 @@ def make_reply(url, footer, times):
     time_msg = shrink_text(1,
         ', '.join(f'{s} {int(t)}s' for s, t in zip(time_names, times)))
     return '\n\n'.join([url, time_msg, '---', footer])
+
+def logging_setup():
+    global logger
+
+    file_formatter = logging.Formatter(
+        '%(asctime)s | %(levelname)s | %(name)s | %(message)s')
+    file_handler = logging.FileHandler(filename='../log/fps_bot.log')
+    file_handler.setFormatter(file_formatter)
+    file_handler.setLevel(logging.DEBUG)
+
+    stdout_formatter  = logging.Formatter('%(message)s')
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setFormatter(stdout_formatter)
+    stdout_handler.setLevel(logging.INFO)
+
+    logging.basicConfig(
+        level=logging.DEBUG,
+        handlers=[file_handler, stdout_handler])
+
+    logger = logging.getLogger('fps_bot')
+
+def comment_permalink(msg):
+    return (f'https://reddit.com{msg.submission.permalink}{msg.id}')
 
 def main():
     with open('secret.json') as f:
@@ -77,6 +104,8 @@ def main():
         '[report issue](https://github.com/SicariusNoctis/fps_bot/issues) | '
         '[source code](https://github.com/SicariusNoctis/fps_bot)')
 
+    logger.info('Run started')
+
     while True:
         for msg in reddit.inbox.unread():
             if not isinstance(msg, praw.models.Comment) or not msg.is_root:
@@ -89,25 +118,22 @@ def main():
             fname_upload = f"enc-{fname_download}"
             times = []
 
-            print(f'Comment: {msg}')
-            print(f'Request: {request}')
-            print(f'Link:    {url_download}')
+            logger.info(f'Comment: {comment_permalink(msg)}')
+            logger.info(f'Request: {request}')
+            logger.info(f'Link:    {url_download}')
 
-            print('Downloading...')
             t, _ = _download_video(url_download, fname_download)
             times.append(t)
-
-            print('Encoding...')
             t, _ = _encode_video(fname_download, fname_upload)
             times.append(t)
-
-            print('Uploading...')
             t, url_upload = _upload_video(gfycat, fname_upload)
             times.append(t)
 
-            print(f'Result:  {url_upload}')
-            msg.reply(make_reply(url_upload, msg_footer, times))
+            logger.info(f'Result:  {url_upload}')
+            reply = msg.reply(make_reply(url_upload, msg_footer, times))
+            logger.info(f'Reply:   {comment_permalink(reply)}')
 
+        logger.debug('Sleeping 10s...')
         sleep(10)
 
 # gfycat = pfycat.Client()
@@ -126,6 +152,7 @@ def main():
 # url_upload = upload_video(gfycat, fname_upload)
 # print(url_upload)
 
+logging_setup()
 main()
 
 # Connect to reddit account
@@ -137,15 +164,12 @@ main()
 
 # TODO
 # Break into multiple files
-# Log all actions/requests
 # Detailed arguments (2x, 60fps)
 # Also support slowing down a video, e.g. by 2x
 # Warnings (e.g. NSFW)
 # Clever replies? :P
 # Makefile lint
 # Redirect PMs to /u/muntoo? Or reply with "please contact /u/muntoo or post issue on github (more likely to respond)"
-# Example secret.json
-# print dl time, encoding time, ul time
 # gfycat mark NSFW
 # Cache/lookup table
 # Remove download/upload videos once completed?
